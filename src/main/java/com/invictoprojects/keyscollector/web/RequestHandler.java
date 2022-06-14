@@ -1,6 +1,8 @@
 package com.invictoprojects.keyscollector.web;
 
+import com.invictoprojects.keyscollector.model.CodeUpdate;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
+import com.invictoprojects.keyscollector.service.CodeUpdateGenerator;
 import com.invictoprojects.keyscollector.service.CodeUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -21,6 +23,6 @@ public class RequestHandler {
     public Mono<ServerResponse> streamCodeUpdates(ServerRequest request) {
         return ServerResponse.ok()
                 .contentType(MediaType.TEXT_EVENT_STREAM)
-                .body(codeUpdateService.streamCodeUpdates(), CodeUpdates.class);
+                .body(codeUpdateService.streamCodeUpdates(new CodeUpdateGenerator()), CodeUpdate.class);
     }
 }

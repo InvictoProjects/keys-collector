@@ -7,4 +7,14 @@ public class CodeUpdate {
     public String url;
     public Repository repository;
 
+    @Override
+    public String toString() {
+        return "CodeUpdate{" +
+                "name='" + name + '\'' +
+                ", path='" + path + '\'' +
+                ", url='" + url + '\'' +
+                ", repository=" + repository +
+                '}';
+    }
+
 }
