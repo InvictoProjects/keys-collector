@@ -1,20 +1,26 @@
 package com.invictoprojects.keyscollector.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
 public class CodeUpdate {
 
-    public String name;
-    public String path;
-    public String url;
-    public Repository repository;
+    @JsonProperty("name")
+    private String name;
 
-    @Override
-    public String toString() {
-        return "CodeUpdate{" +
-                "name='" + name + '\'' +
-                ", path='" + path + '\'' +
-                ", url='" + url + '\'' +
-                ", repository=" + repository +
-                '}';
-    }
+    @JsonProperty("path")
+    private String path;
+
+    @JsonProperty("url")
+    private String url;
+
+    @JsonProperty("repository")
+    private Repository repository;
+
+    @JsonProperty("text_matches")
+    private List<TextMatches> textMatches;
 
 }
