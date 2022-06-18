@@ -1,11 +1,14 @@
 package com.invictoprojects.keyscollector.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class CodeUpdates {
 
-    public long total_count;
-    public boolean incomplete_results;
-    public List<CodeUpdate> items;
+    @JsonProperty("items")
+    private List<CodeUpdate> items;
 
 }

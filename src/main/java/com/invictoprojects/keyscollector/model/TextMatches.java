@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class Repository {
+public class TextMatches {
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("fragment")
+    private String fragment;
 
 }
