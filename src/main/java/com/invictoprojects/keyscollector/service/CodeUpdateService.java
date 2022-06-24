@@ -4,6 +4,8 @@ import com.invictoprojects.keyscollector.model.CodeUpdate;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
 import com.invictoprojects.keyscollector.model.TextMatches;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
@@ -21,12 +23,23 @@ import java.util.stream.Stream;
 @Service
 public class CodeUpdateService {
 
-    private final Pattern pattern = Pattern.compile("(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}");
+    private Pattern pattern;
     private int page = 0;
     private final Map<String, Integer> extension2Frequency = new HashMap<>();
     private final Set<String> projects = new LinkedHashSet<>();
+    private final Environment env;
 
-    public Flux<String> streamCodeUpdates(CodeUpdateGenerator generator) {
+    @Autowired
+    public CodeUpdateService(Environment env) {
+        this.env = env;
+    }
+
+    public Flux<String> streamCodeUpdates(String key, CodeUpdateGenerator generator) {
+        String regex = env.getProperty("regexp.AccessKey." + key.toLowerCase());
+        if (regex == null) {
+            return Flux.just(Strings.EMPTY);
+        }
+        pattern  = Pattern.compile(regex);
         return Flux.generate((SynchronousSink<Mono<CodeUpdates>> synchronousSink) -> {
                     Mono<CodeUpdates> codeUpdate = generator.next();
                     if (codeUpdate != null) {

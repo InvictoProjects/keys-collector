@@ -10,7 +10,7 @@ import java.time.Duration;
 public class CodeUpdateGenerator {
 
     private static final String baseUrl = "https://api.github.com";
-    private static final String searchApiUri = "search/code?sort=indexed&order=desc&per_page=30&q=awsaccess";
+    private static String searchApiUri = "search/code?sort=indexed&order=desc&per_page=30&q=";
     private static final String acceptHeader = "application/vnd.github.v3.text-match+json";
 
     private final String authorizationToken;
@@ -19,8 +19,9 @@ public class CodeUpdateGenerator {
 
     private long currentPage = 0L;
 
-    public CodeUpdateGenerator(String token) {
+    public CodeUpdateGenerator(String token, String keyWord) {
         this.authorizationToken = token;
+        searchApiUri += keyWord;
         client = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeaders(httpHeaders -> {
