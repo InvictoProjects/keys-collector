@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -40,10 +40,15 @@ public class CodeUpdateService {
             throw new IllegalArgumentException("Please provide key that exists in config file!");
         }
         return getCodeUpdates(generator)
+                .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, Pattern.compile(regex)))
-                .doOnNext(tuple -> collectExtensionStats(tuple.getT2()))
-                .map(tuple -> new Message(tuple.getT1(), getTopExtensionStats(), isNewProject(tuple.getT3())))
-                .delayElements(Duration.ofSeconds(15));
+                .doOnNext(tuple -> collectLanguageStats(tuple.getT2()))
+                .map(tuple -> new Message(
+                        tuple.getT1(),
+                        getTopExtensionStats(),
+                        tuple.getT3(),
+                        isNewProject(tuple.getT3())
+                ));
     }
 
     private Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
@@ -66,9 +71,9 @@ public class CodeUpdateService {
                 .map(key -> Tuples.of(key, codeUpdate.getName(), codeUpdate.getRepository().getName()));
     }
 
-    private void collectExtensionStats(String filename) {
+    private void collectLanguageStats(String filename) {
         String[] arr = filename.split("\\.");
-        String extension = arr.length == 1 ? "Undetermined" : "."+arr[arr.length - 1];
+        String extension = arr.length == 1 ? "Undetermined" : "." + arr[arr.length - 1];
         String language = languageService.resolveLanguageByExtension(extension);
         programmingLanguageStats.putIfAbsent(language, 0);
         Integer currAmount = programmingLanguageStats.get(language);
