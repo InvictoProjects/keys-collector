@@ -48,11 +48,12 @@ public class CodeUpdateService {
                         synchronousSink.complete();
                     }
                 })
-                .flatMap(this::getCodeUpdateFlux)
+                .log()
+                .flatMap(this::getCodeUpdateFlux, 1, 1)
                 .flatMap(this::getSearchInfoFlux)
                 .map(this::processSearchInfo)
                 .filter(StringUtils::hasLength)
-                .delayElements(Duration.ofSeconds(1));
+                .delayElements(Duration.ofSeconds(15));
     }
 
     public Flux<CodeUpdate> getCodeUpdateFlux(Mono<CodeUpdates> codeUpdatesMono) {
