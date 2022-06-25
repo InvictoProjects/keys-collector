@@ -1,6 +1,7 @@
 package com.invictoprojects.keyscollector.controller;
 
 
+import com.invictoprojects.keyscollector.model.Message;
 import com.invictoprojects.keyscollector.service.CodeUpdateGenerator;
 import com.invictoprojects.keyscollector.service.CodeUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class CodeUpdateController {
     }
 
     @GetMapping(value = "search/{service}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> searchCode(@PathVariable String service, @RequestHeader("x-github-api-token") String token) {
+    public Flux<Message> searchCode(@PathVariable String service, @RequestHeader("x-github-api-token") String token) {
         String keyWord = env.getProperty(service);
         return codeUpdateService.streamCodeUpdates(service, new CodeUpdateGenerator("token "+token, keyWord));
     }

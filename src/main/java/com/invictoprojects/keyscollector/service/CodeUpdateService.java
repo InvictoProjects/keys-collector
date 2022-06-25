@@ -2,12 +2,10 @@ package com.invictoprojects.keyscollector.service;
 
 import com.invictoprojects.keyscollector.model.CodeUpdate;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
-import com.invictoprojects.keyscollector.model.TextMatches;
-import org.apache.logging.log4j.util.Strings;
+import com.invictoprojects.keyscollector.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
@@ -18,14 +16,12 @@ import java.time.Duration;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 @Service
 public class CodeUpdateService {
 
-    private Pattern pattern;
-    private int page = 0;
-    private final Map<String, Integer> extension2Frequency = new HashMap<>();
+    private final Map<String, Integer> extensionStats = new HashMap<>();
     private final Set<String> projects = new LinkedHashSet<>();
     private final Environment env;
 
@@ -34,12 +30,19 @@ public class CodeUpdateService {
         this.env = env;
     }
 
-    public Flux<String> streamCodeUpdates(String key, CodeUpdateGenerator generator) {
+    public Flux<Message> streamCodeUpdates(String key, CodeUpdateGenerator generator) {
         String regex = env.getProperty("regexp.AccessKey." + key.toLowerCase());
         if (regex == null) {
-            return Flux.just(Strings.EMPTY);
+            throw new IllegalArgumentException("Please provide key that exists in config file!");
         }
-        pattern  = Pattern.compile(regex);
+        return getCodeUpdates(generator)
+                .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, Pattern.compile(regex)))
+                .doOnNext(tuple -> collectExtensionStats(tuple.getT2()))
+                .map(tuple -> new Message(tuple.getT1(), getTopExtensionStats(), isNewProject(tuple.getT3())))
+                .delayElements(Duration.ofSeconds(1));
+    }
+
+    private Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
         return Flux.generate((SynchronousSink<Mono<CodeUpdates>> synchronousSink) -> {
                     Mono<CodeUpdates> codeUpdate = generator.next();
                     if (codeUpdate != null) {
@@ -48,7 +51,6 @@ public class CodeUpdateService {
                         synchronousSink.complete();
                     }
                 })
-                .log()
                 .flatMap(this::getCodeUpdateFlux, 1, 1)
                 .flatMap(this::getSearchInfoFlux)
                 .map(this::processSearchInfo)
@@ -56,65 +58,42 @@ public class CodeUpdateService {
                 .delayElements(Duration.ofSeconds(15));
     }
 
-    public Flux<CodeUpdate> getCodeUpdateFlux(Mono<CodeUpdates> codeUpdatesMono) {
+    private Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
+        return Flux.fromStream(codeUpdate.getTextMatches().stream())
+                .map(textMatches -> pattern.matcher(textMatches.getFragment()))
+                .filter(Matcher::find)
+                .map(Matcher::group)
+                .map(key -> Tuples.of(key, codeUpdate.getName(), codeUpdate.getRepository().getName()));
+    }
+
+    private void collectExtensionStats(String filename) {
+        String[] arr = filename.split("\\.");
+        String extension = arr[arr.length - 1];
+        if (!extensionStats.containsKey(extension)) {
+            extensionStats.put(extension, 0);
+        }
+        Integer currAmount = extensionStats.get(extension);
+        extensionStats.put(extension, ++currAmount);
+    }
+
+    private Boolean isNewProject(String projectName) {
+        Boolean result = !projects.contains(projectName);
+        projects.add(projectName);
+        return result;
+    }
+
+    private Flux<CodeUpdate> getCodeUpdateFlux(Mono<CodeUpdates> codeUpdatesMono) {
         return Flux.from(codeUpdatesMono)
                 .filter(codeUpdates -> codeUpdates.getItems() != null)
-                .flatMap(codeUpdates -> {
-                    System.out.println(++page);
-                    return Flux.fromStream(codeUpdates.getItems().stream());
-                });
+                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
     }
 
-    public Flux<Tuple3<String, TextMatches, String>> getSearchInfoFlux(CodeUpdate codeUpdate) {
-        return Flux.fromStream(codeUpdate.getTextMatches().stream()
-                .map(textMatches -> Tuples.of(codeUpdate.getName(), textMatches, codeUpdate.getRepository().getName())));
+    private Map<String, Integer> getTopExtensionStats() {
+        return extensionStats.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .limit(3)
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1, LinkedHashMap::new));
     }
-
-    public String processSearchInfo(Tuple3<String, TextMatches, String> searchInfo) {
-        String fileName = searchInfo.getT1();
-        TextMatches textMatches = searchInfo.getT2();
-        String projectName = searchInfo.getT3();
-
-        String s = textMatches.getFragment();
-        Matcher matcher = pattern.matcher(s);
-
-        if (matcher.find()) {
-            String extension = getExtension(fileName);
-
-            if (!extension2Frequency.containsKey(extension)) {
-                extension2Frequency.put(extension, 0);
-            }
-
-            Integer currAmount = extension2Frequency.get(extension);
-            extension2Frequency.put(extension, ++currAmount);
-
-            String result = matcher.group();
-            StringBuilder extensionResults = new StringBuilder();
-            extension2Frequency.forEach((key, value) -> extensionResults.append(key)
-                    .append(" ")
-                    .append(value)
-                    .append("\n"));
-
-            boolean isNewProject = !projects.contains(projectName);
-            projects.add(projectName);
-
-            return createResponse(result, String.valueOf(extensionResults), isNewProject?"New project with keys exposure!!!":Strings.EMPTY);
-        }
-        return Strings.EMPTY;
-    }
-
-    public String getExtension(String fileName) {
-        String[] arr = fileName.split("\\.");
-        return arr[arr.length-1];
-    }
-
-    public String createResponse(String result, String extension, String projectName) {
-        StringBuilder response = new StringBuilder();
-        Stream.of(result, extension, projectName)
-                .filter(Objects::nonNull)
-                .forEach(s -> response.append(s)
-                        .append("\n"));
-        return response.toString();
-    }
-
 }
