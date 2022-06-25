@@ -14,6 +14,7 @@ import reactor.util.function.Tuples;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,8 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class CodeUpdateService {
 
-    private final Map<String, Integer> programmingLanguageStats = new HashMap<>();
-    private final Set<String> projects = new LinkedHashSet<>();
+    private final Map<String, Integer> programmingLanguageStats = new ConcurrentHashMap<>();
+    private final Set<String> projects = Collections.synchronizedSet(new LinkedHashSet<>());
     private final Environment env;
 
     private final LanguageService languageService;
@@ -69,9 +70,7 @@ public class CodeUpdateService {
         String[] arr = filename.split("\\.");
         String extension = arr.length == 1 ? "Undetermined" : "."+arr[arr.length - 1];
         String language = languageService.resolveLanguageByExtension(extension);
-        if (!programmingLanguageStats.containsKey(language)) {
-            programmingLanguageStats.put(language, 0);
-        }
+        programmingLanguageStats.putIfAbsent(language, 0);
         Integer currAmount = programmingLanguageStats.get(language);
         programmingLanguageStats.put(language, ++currAmount);
     }
