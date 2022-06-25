@@ -39,7 +39,7 @@ public class CodeUpdateService {
                 .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, Pattern.compile(regex)))
                 .doOnNext(tuple -> collectExtensionStats(tuple.getT2()))
                 .map(tuple -> new Message(tuple.getT1(), getTopExtensionStats(), isNewProject(tuple.getT3())))
-                .delayElements(Duration.ofSeconds(1));
+                .delayElements(Duration.ofSeconds(15));
     }
 
     private Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
@@ -51,11 +51,7 @@ public class CodeUpdateService {
                         synchronousSink.complete();
                     }
                 })
-                .flatMap(this::getCodeUpdateFlux, 1, 1)
-                .flatMap(this::getSearchInfoFlux)
-                .map(this::processSearchInfo)
-                .filter(StringUtils::hasLength)
-                .delayElements(Duration.ofSeconds(15));
+                .flatMap(this::getCodeUpdateFlux, 1, 1);
     }
 
     private Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
