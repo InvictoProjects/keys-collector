@@ -6,6 +6,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class CodeUpdateGenerator {
 
@@ -27,12 +29,20 @@ public class CodeUpdateGenerator {
                 .defaultHeaders(httpHeaders -> {
                     httpHeaders.set("Authorization", authorizationToken);
                     httpHeaders.set("Accept", acceptHeader);
+                    httpHeaders.set("User-Agent", "Koroliuk");
                 })
                 .build();
     }
 
     public Mono<CodeUpdates> next() {
         currentPage++;
+        if (currentPage != 1) {
+            try {
+                Thread.sleep(15000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return client.get()
                 .uri(searchApiUri+ "&page=" + currentPage)
                 .exchangeToMono(clientResponse -> {
@@ -43,7 +53,6 @@ public class CodeUpdateGenerator {
                     } else {
                         return clientResponse.bodyToMono(CodeUpdates.class);
                     }
-                })
-                .delaySubscription(Duration.ofSeconds(2));
+                });
     }
 }
