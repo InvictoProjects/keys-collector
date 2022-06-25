@@ -59,7 +59,11 @@ public class CodeUpdateService {
                         synchronousSink.complete();
                     }
                 })
-                .flatMap(this::getCodeUpdateFlux);
+                .flatMap(this::getCodeUpdateFlux, 1, 1)
+                .flatMap(this::getSearchInfoFlux)
+                .map(this::processSearchInfo)
+                .filter(StringUtils::hasLength)
+                .delayElements(Duration.ofSeconds(15));
     }
 
     private Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
