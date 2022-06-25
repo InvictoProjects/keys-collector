@@ -17,18 +17,15 @@ import reactor.core.publisher.Flux;
 public class CodeUpdateController {
 
     private final CodeUpdateService codeUpdateService;
-    private final Environment env;
 
     @Autowired
     public CodeUpdateController(CodeUpdateService codeUpdateService, Environment env) {
         this.codeUpdateService = codeUpdateService;
-        this.env = env;
     }
 
     @GetMapping(value = "search/{service}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Message> searchCode(@PathVariable String service, @RequestHeader("x-github-api-token") String token) {
-        String keyWord = env.getProperty(service);
-        return codeUpdateService.streamCodeUpdates(service, new CodeUpdateGenerator("token "+token, keyWord));
+        return codeUpdateService.streamCodeUpdates(service, token);
     }
 
 }

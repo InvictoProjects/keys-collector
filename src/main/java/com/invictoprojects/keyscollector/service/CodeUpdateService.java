@@ -30,13 +30,21 @@ public class CodeUpdateService {
         this.env = env;
     }
 
-    public Flux<Message> streamCodeUpdates(String key, CodeUpdateGenerator generator) {
-        String regex = env.getProperty("regexp.AccessKey." + key.toLowerCase());
+    public Flux<Message> streamCodeUpdates(String service, String token) {
+        String key = env.getProperty(service);
+        if (key == null) {
+            throw new IllegalArgumentException("Please provide key that exists in config file!");
+        }
+        CodeUpdateGenerator generator = new CodeUpdateGenerator("token "+ token , key);
+
+        String regex = env.getProperty("regexp." + service.toLowerCase() + ".accesskey");
         if (regex == null) {
             throw new IllegalArgumentException("Please provide key that exists in config file!");
         }
+        Pattern pattern = Pattern.compile(regex);
+
         return getCodeUpdates(generator)
-                .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, Pattern.compile(regex)))
+                .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, pattern))
                 .doOnNext(tuple -> collectExtensionStats(tuple.getT2()))
                 .map(tuple -> new Message(tuple.getT1(), getTopExtensionStats(), isNewProject(tuple.getT3())))
                 .delayElements(Duration.ofSeconds(1));
