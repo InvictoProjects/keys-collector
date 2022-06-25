@@ -21,13 +21,16 @@ import java.util.stream.Collectors;
 @Service
 public class CodeUpdateService {
 
-    private final Map<String, Integer> extensionStats = new HashMap<>();
+    private final Map<String, Integer> programmingLanguageStats = new HashMap<>();
     private final Set<String> projects = new LinkedHashSet<>();
     private final Environment env;
 
+    private final LanguageService languageService;
+
     @Autowired
-    public CodeUpdateService(Environment env) {
+    public CodeUpdateService(Environment env, LanguageService languageService) {
         this.env = env;
+        this.languageService = languageService;
     }
 
     public Flux<Message> streamCodeUpdates(String key, CodeUpdateGenerator generator) {
@@ -39,7 +42,7 @@ public class CodeUpdateService {
                 .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, Pattern.compile(regex)))
                 .doOnNext(tuple -> collectExtensionStats(tuple.getT2()))
                 .map(tuple -> new Message(tuple.getT1(), getTopExtensionStats(), isNewProject(tuple.getT3())))
-                .delayElements(Duration.ofSeconds(1));
+                .delayElements(Duration.ofSeconds(15));
     }
 
     private Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
@@ -51,11 +54,7 @@ public class CodeUpdateService {
                         synchronousSink.complete();
                     }
                 })
-                .flatMap(this::getCodeUpdateFlux, 1, 1)
-                .flatMap(this::getSearchInfoFlux)
-                .map(this::processSearchInfo)
-                .filter(StringUtils::hasLength)
-                .delayElements(Duration.ofSeconds(15));
+                .flatMap(this::getCodeUpdateFlux, 1, 1);
     }
 
     private Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
@@ -68,12 +67,13 @@ public class CodeUpdateService {
 
     private void collectExtensionStats(String filename) {
         String[] arr = filename.split("\\.");
-        String extension = arr[arr.length - 1];
-        if (!extensionStats.containsKey(extension)) {
-            extensionStats.put(extension, 0);
+        String extension = arr.length == 1 ? "Undetermined" : "."+arr[arr.length - 1];
+        String language = languageService.resolveLanguageByExtension(extension);
+        if (!programmingLanguageStats.containsKey(language)) {
+            programmingLanguageStats.put(language, 0);
         }
-        Integer currAmount = extensionStats.get(extension);
-        extensionStats.put(extension, ++currAmount);
+        Integer currAmount = programmingLanguageStats.get(language);
+        programmingLanguageStats.put(language, ++currAmount);
     }
 
     private Boolean isNewProject(String projectName) {
@@ -89,7 +89,7 @@ public class CodeUpdateService {
     }
 
     private Map<String, Integer> getTopExtensionStats() {
-        return extensionStats.entrySet().stream()
+        return programmingLanguageStats.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(3)
                 .collect(Collectors.toMap(Map.Entry::getKey,
