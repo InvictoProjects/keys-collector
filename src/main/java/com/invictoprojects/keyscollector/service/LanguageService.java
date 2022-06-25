@@ -23,7 +23,7 @@ public class LanguageService {
     @PostConstruct
     private void createExtensionToLanguageMap() throws KeysCollectorException {
         try {
-            logger.error("Try to cache languages.json");
+            logger.info("Trying to cache languages.json");
             String file = "src/main/resources/languages.json";
             byte[] bytes = Files.readAllBytes(Paths.get(file));
             String json = new String(bytes);
@@ -39,9 +39,9 @@ public class LanguageService {
                     }
                 }
             }
-            logger.error("Successfully cached languages.json");
+            logger.info("Successfully cached languages.json");
         } catch (IOException e) {
-            throw new KeysCollectorException("Fail to cache languages.json");
+            throw new KeysCollectorException("Failed to cache languages.json");
         }
     }
 
@@ -49,7 +49,7 @@ public class LanguageService {
         if (extension2Language.containsKey(extension)) {
             return extension2Language.get(extension);
         }
-        logger.warn(String.format("Unknown extension: %s", extension));
+        logger.warn("Unknown extension: {}", extension);
         return "Undetermined";
     }
 

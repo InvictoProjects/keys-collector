@@ -15,6 +15,9 @@ public class Message {
     @JsonProperty("language_stats")
     private Map<String, Integer> languageStats;
 
+    @JsonProperty("project_name")
+    private String projectName;
+
     @JsonProperty("is_new_project")
     private Boolean isNewProject;
 }
