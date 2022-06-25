@@ -21,13 +21,16 @@ import java.util.stream.Collectors;
 @Service
 public class CodeUpdateService {
 
-    private final Map<String, Integer> extensionStats = new HashMap<>();
+    private final Map<String, Integer> programmingLanguageStats = new HashMap<>();
     private final Set<String> projects = new LinkedHashSet<>();
     private final Environment env;
 
+    private final LanguageService languageService;
+
     @Autowired
-    public CodeUpdateService(Environment env) {
+    public CodeUpdateService(Environment env, LanguageService languageService) {
         this.env = env;
+        this.languageService = languageService;
     }
 
     public Flux<Message> streamCodeUpdates(String key, CodeUpdateGenerator generator) {
@@ -64,12 +67,13 @@ public class CodeUpdateService {
 
     private void collectExtensionStats(String filename) {
         String[] arr = filename.split("\\.");
-        String extension = arr[arr.length - 1];
-        if (!extensionStats.containsKey(extension)) {
-            extensionStats.put(extension, 0);
+        String extension = arr.length == 1 ? "Undetermined" : "."+arr[arr.length - 1];
+        String language = languageService.resolveLanguageByExtension(extension);
+        if (!programmingLanguageStats.containsKey(language)) {
+            programmingLanguageStats.put(language, 0);
         }
-        Integer currAmount = extensionStats.get(extension);
-        extensionStats.put(extension, ++currAmount);
+        Integer currAmount = programmingLanguageStats.get(language);
+        programmingLanguageStats.put(language, ++currAmount);
     }
 
     private Boolean isNewProject(String projectName) {
@@ -85,7 +89,7 @@ public class CodeUpdateService {
     }
 
     private Map<String, Integer> getTopExtensionStats() {
-        return extensionStats.entrySet().stream()
+        return programmingLanguageStats.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(3)
                 .collect(Collectors.toMap(Map.Entry::getKey,
