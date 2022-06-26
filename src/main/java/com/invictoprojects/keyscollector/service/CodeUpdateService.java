@@ -33,7 +33,7 @@ public class CodeUpdateService {
 
     public Flux<Message> streamCodeUpdates(CodeUpdateGenerator generator, Pattern pattern) {
         return getCodeUpdateFlux(generator)
-                .subscribeOn(Schedulers.boundedElastic())
+                .publishOn(Schedulers.boundedElastic())
                 .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, pattern))
                 .doOnNext(tuple -> collectLanguageStats(tuple.getT2()))
                 .map(tuple -> new Message(
@@ -41,7 +41,8 @@ public class CodeUpdateService {
                         getTopExtensionStats(),
                         tuple.getT3(),
                         isNewProject(tuple.getT3())
-                ));
+                ))
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     Flux<CodeUpdate> getCodeUpdateFlux(CodeUpdateGenerator generator) {
