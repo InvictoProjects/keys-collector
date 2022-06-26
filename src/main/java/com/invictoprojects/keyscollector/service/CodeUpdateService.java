@@ -6,7 +6,6 @@ import com.invictoprojects.keyscollector.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
@@ -32,7 +31,7 @@ public class CodeUpdateService {
     }
 
     public Flux<Message> streamCodeUpdates(CodeUpdateGenerator generator, Pattern pattern) {
-        return getCodeUpdates(generator)
+        return getCodeUpdateFlux(generator)
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, pattern))
                 .doOnNext(tuple -> collectLanguageStats(tuple.getT2()))
@@ -44,22 +43,17 @@ public class CodeUpdateService {
                 ));
     }
 
-    Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
-        return Flux.generate((SynchronousSink<Mono<CodeUpdates>> synchronousSink) -> {
-                    Mono<CodeUpdates> codeUpdate = generator.next();
+    Flux<CodeUpdate> getCodeUpdateFlux(CodeUpdateGenerator generator) {
+        return Flux.generate((SynchronousSink<CodeUpdates> synchronousSink) -> {
+                    CodeUpdates codeUpdate = generator.getNextPage();
                     if (codeUpdate != null) {
                         synchronousSink.next(codeUpdate);
                     } else {
                         synchronousSink.complete();
                     }
                 })
-                .flatMap(this::getCodeUpdateFlux, 1, 1);
-    }
-
-    Flux<CodeUpdate> getCodeUpdateFlux(Mono<CodeUpdates> codeUpdatesMono) {
-        return Flux.from(codeUpdatesMono)
                 .filter(codeUpdates -> codeUpdates.getItems() != null)
-                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
+                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()), 1, 1);
     }
 
     Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
