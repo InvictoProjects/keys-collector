@@ -9,11 +9,12 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
-import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,13 +22,16 @@ import java.util.stream.Collectors;
 @Service
 public class CodeUpdateService {
 
-    private final Map<String, Integer> extensionStats = new HashMap<>();
-    private final Set<String> projects = new LinkedHashSet<>();
+    private final Map<String, Integer> programmingLanguageStats = new ConcurrentHashMap<>();
+    private final Set<String> projects = Collections.synchronizedSet(new LinkedHashSet<>());
     private final Environment env;
 
+    private final LanguageService languageService;
+
     @Autowired
-    public CodeUpdateService(Environment env) {
+    public CodeUpdateService(Environment env, LanguageService languageService) {
         this.env = env;
+        this.languageService = languageService;
     }
 
     public Flux<Message> streamCodeUpdates(String service, String token) {
@@ -44,10 +48,15 @@ public class CodeUpdateService {
         Pattern pattern = Pattern.compile(regex);
 
         return getCodeUpdates(generator)
-                .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, pattern))
-                .doOnNext(tuple -> collectExtensionStats(tuple.getT2()))
-                .map(tuple -> new Message(tuple.getT1(), getTopExtensionStats(), isNewProject(tuple.getT3())))
-                .delayElements(Duration.ofSeconds(1));
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, Pattern.compile(regex)))
+                .doOnNext(tuple -> collectLanguageStats(tuple.getT2()))
+                .map(tuple -> new Message(
+                        tuple.getT1(),
+                        getTopExtensionStats(),
+                        tuple.getT3(),
+                        isNewProject(tuple.getT3())
+                ));
     }
 
     private Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
@@ -59,29 +68,24 @@ public class CodeUpdateService {
                         synchronousSink.complete();
                     }
                 })
-                .flatMap(this::getCodeUpdateFlux, 1, 1)
-                .flatMap(this::getSearchInfoFlux)
-                .map(this::processSearchInfo)
-                .filter(StringUtils::hasLength)
-                .delayElements(Duration.ofSeconds(15));
+                .flatMap(this::getCodeUpdateFlux, 1, 1);
     }
 
     private Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
         return Flux.fromStream(codeUpdate.getTextMatches().stream())
-                .map(textMatches -> pattern.matcher(textMatches.getFragment()))
+                .map(pattern::matcher)
                 .filter(Matcher::find)
                 .map(Matcher::group)
-                .map(key -> Tuples.of(key, codeUpdate.getName(), codeUpdate.getRepository().getName()));
+                .map(key -> Tuples.of(key, codeUpdate.getName(), codeUpdate.getRepositoryName()));
     }
 
-    private void collectExtensionStats(String filename) {
+    private void collectLanguageStats(String filename) {
         String[] arr = filename.split("\\.");
-        String extension = arr[arr.length - 1];
-        if (!extensionStats.containsKey(extension)) {
-            extensionStats.put(extension, 0);
-        }
-        Integer currAmount = extensionStats.get(extension);
-        extensionStats.put(extension, ++currAmount);
+        String extension = arr.length == 1 ? "Undetermined" : "." + arr[arr.length - 1];
+        String language = languageService.resolveLanguageByExtension(extension);
+        programmingLanguageStats.putIfAbsent(language, 0);
+        Integer currAmount = programmingLanguageStats.get(language);
+        programmingLanguageStats.put(language, ++currAmount);
     }
 
     private Boolean isNewProject(String projectName) {
@@ -97,7 +101,7 @@ public class CodeUpdateService {
     }
 
     private Map<String, Integer> getTopExtensionStats() {
-        return extensionStats.entrySet().stream()
+        return programmingLanguageStats.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(3)
                 .collect(Collectors.toMap(Map.Entry::getKey,

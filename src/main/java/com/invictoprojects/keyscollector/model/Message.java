@@ -12,8 +12,11 @@ public class Message {
     @JsonProperty("key")
     private String key;
 
-    @JsonProperty("extension_stats")
-    private Map<String, Integer> extensionStats;
+    @JsonProperty("language_stats")
+    private Map<String, Integer> languageStats;
+
+    @JsonProperty("project_name")
+    private String projectName;
 
     @JsonProperty("is_new_project")
     private Boolean isNewProject;
