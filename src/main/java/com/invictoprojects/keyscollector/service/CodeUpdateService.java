@@ -65,10 +65,10 @@ public class CodeUpdateService {
 
     private Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
         return Flux.fromStream(codeUpdate.getTextMatches().stream())
-                .map(textMatches -> pattern.matcher(textMatches.getFragment()))
+                .map(pattern::matcher)
                 .filter(Matcher::find)
                 .map(Matcher::group)
-                .map(key -> Tuples.of(key, codeUpdate.getName(), codeUpdate.getRepository().getName()));
+                .map(key -> Tuples.of(key, codeUpdate.getName(), codeUpdate.getRepositoryName()));
     }
 
     private void collectLanguageStats(String filename) {
