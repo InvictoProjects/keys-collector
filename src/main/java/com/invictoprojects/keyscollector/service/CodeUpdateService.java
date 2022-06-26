@@ -11,8 +11,9 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,13 +22,13 @@ import java.util.stream.Collectors;
 @Service
 public class CodeUpdateService {
 
-    private final Map<String, Integer> programmingLanguageStats = new ConcurrentHashMap<>();
-    private final Set<String> projects = Collections.synchronizedSet(new LinkedHashSet<>());
     private final LanguageService languageService;
+    private final StatisticsService statisticsService;
 
     @Autowired
-    public CodeUpdateService(LanguageService languageService) {
+    public CodeUpdateService(LanguageService languageService, StatisticsService statisticsService) {
         this.languageService = languageService;
+        this.statisticsService = statisticsService;
     }
 
     public Flux<Message> streamCodeUpdates(CodeUpdateGenerator generator, Pattern pattern) {
@@ -68,19 +69,17 @@ public class CodeUpdateService {
         String[] arr = filename.split("\\.");
         String extension = arr.length == 1 ? "Undetermined" : "." + arr[arr.length - 1];
         String language = languageService.resolveLanguageByExtension(extension);
-        programmingLanguageStats.putIfAbsent(language, 0);
-        Integer currAmount = programmingLanguageStats.get(language);
-        programmingLanguageStats.put(language, ++currAmount);
+        statisticsService.saveProgrammingLanguage(language);
     }
 
     private Boolean isNewProject(String projectName) {
-        Boolean result = !projects.contains(projectName);
-        projects.add(projectName);
+        Boolean result = !statisticsService.isProjectAlreadySaved(projectName);
+        statisticsService.saveProject(projectName);
         return result;
     }
 
     private Map<String, Integer> getTopExtensionStats() {
-        return programmingLanguageStats.entrySet().stream()
+        return statisticsService.getProgrammingLanguageStats().entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(3)
                 .collect(Collectors.toMap(Map.Entry::getKey,

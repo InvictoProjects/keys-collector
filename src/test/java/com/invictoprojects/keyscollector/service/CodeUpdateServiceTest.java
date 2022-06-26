@@ -25,7 +25,7 @@ class CodeUpdateServiceTest {
     void setUp() {
         languageService = Mockito.mock(LanguageService.class);
         codeUpdateGenerator = Mockito.mock(CodeUpdateGenerator.class);
-        codeUpdateService = new CodeUpdateService(languageService);
+        codeUpdateService = new CodeUpdateService(languageService, new StatisticsService());
     }
 
     @Test
