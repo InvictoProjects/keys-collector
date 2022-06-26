@@ -5,49 +5,47 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 public class CodeUpdateGenerator {
 
-    private static final String baseUrl = "https://api.github.com";
-    private static String searchApiUri = "search/code?sort=indexed&order=desc&per_page=30&q=";
-    private static final String acceptHeader = "application/vnd.github.v3.text-match+json";
+    private static final String BASE_URL = "https://api.github.com";
+    private static final String ACCEPT_HEADER = "application/vnd.github.v3.text-match+json";
 
+    private String searchApiUri = "search/code?sort=indexed&order=desc&per_page=30&q=";
     private final String authorizationToken;
-
     private final WebClient client;
 
-    private long currentPage = 0L;
+    private long currentPage;
 
     public CodeUpdateGenerator(String token, String keyWord) {
         this.authorizationToken = token;
         searchApiUri += keyWord;
         client = WebClient.builder()
-                .baseUrl(baseUrl)
+                .baseUrl(BASE_URL)
                 .defaultHeaders(httpHeaders -> {
                     httpHeaders.set("Authorization", authorizationToken);
-                    httpHeaders.set("Accept", acceptHeader);
-                    httpHeaders.set("User-Agent", "Koroliuk");
+                    httpHeaders.set("Accept", ACCEPT_HEADER);
                 })
                 .build();
     }
 
-    public Mono<CodeUpdates> next() {
+    public CodeUpdates getNextPage() {
+        return getNextPageMono()
+                .block();
+    }
+
+    public Mono<CodeUpdates> getNextPageMono() {
         currentPage++;
-        if (currentPage != 1) {
-            try {
-                Thread.sleep(15000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
         return client.get()
                 .uri(searchApiUri+ "&page=" + currentPage)
                 .exchangeToMono(clientResponse -> {
                     if (clientResponse.statusCode().equals(HttpStatus.FORBIDDEN)) {
-                        return Mono.empty();
+                        try {
+                            Thread.sleep(60000);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        currentPage--;
+                        return getNextPageMono();
                     } else if (clientResponse.statusCode().equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
                         return Mono.empty();
                     } else {
