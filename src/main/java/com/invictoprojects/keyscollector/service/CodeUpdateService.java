@@ -3,9 +3,7 @@ package com.invictoprojects.keyscollector.service;
 import com.invictoprojects.keyscollector.model.CodeUpdate;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
 import com.invictoprojects.keyscollector.model.Message;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,42 +18,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.requireNonNull;
 
 @Service
 public class CodeUpdateService {
 
     private final Map<String, Integer> programmingLanguageStats = new ConcurrentHashMap<>();
     private final Set<String> projects = Collections.synchronizedSet(new LinkedHashSet<>());
-    private String keys = Strings.EMPTY;
-    private String keyWords = Strings.EMPTY;
-    private final Environment env;
-
     private final LanguageService languageService;
 
     @Autowired
-    public CodeUpdateService(Environment env, LanguageService languageService) {
-        this.env = env;
+    public CodeUpdateService(LanguageService languageService) {
         this.languageService = languageService;
     }
 
-    public Flux<Message> streamCodeUpdates(String service, String token) {
-        String[] serviceKeys = requireNonNull(env.getProperty("list." + service + ".keys")).split(",");
-
-        Flux.fromArray(serviceKeys)
-                .mapNotNull(x -> env.getProperty("regexp." + service + "." + x))
-                .map(x -> serviceKeys.length > 1 ? "(" + x + ")" : x)
-                .reduce((x1, x2) -> x1 + "|" + x2)
-                .map(x -> serviceKeys.length > 1 ? "(" + x + ")" : x)
-                .subscribe(result -> keys = result);
-        Pattern pattern = Pattern.compile(keys);
-
-        Flux.fromArray(serviceKeys)
-                .mapNotNull(x -> service + x)
-                .reduce((x1, x2) -> x1 + " " + x2)
-                .subscribe(result -> keyWords = result);
-        CodeUpdateGenerator generator = new CodeUpdateGenerator("token "+ token , keyWords);
-
+    public Flux<Message> streamCodeUpdates(CodeUpdateGenerator generator, Pattern pattern) {
         return getCodeUpdates(generator)
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, pattern))
@@ -68,7 +44,7 @@ public class CodeUpdateService {
                 ));
     }
 
-    private Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
+    Flux<CodeUpdate> getCodeUpdates(CodeUpdateGenerator generator) {
         return Flux.generate((SynchronousSink<Mono<CodeUpdates>> synchronousSink) -> {
                     Mono<CodeUpdates> codeUpdate = generator.next();
                     if (codeUpdate != null) {
@@ -80,7 +56,13 @@ public class CodeUpdateService {
                 .flatMap(this::getCodeUpdateFlux, 1, 1);
     }
 
-    private Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
+    Flux<CodeUpdate> getCodeUpdateFlux(Mono<CodeUpdates> codeUpdatesMono) {
+        return Flux.from(codeUpdatesMono)
+                .filter(codeUpdates -> codeUpdates.getItems() != null)
+                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
+    }
+
+    Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
         return Flux.fromStream(codeUpdate.getTextMatches().stream())
                 .map(pattern::matcher)
                 .filter(Matcher::find)
@@ -101,12 +83,6 @@ public class CodeUpdateService {
         Boolean result = !projects.contains(projectName);
         projects.add(projectName);
         return result;
-    }
-
-    private Flux<CodeUpdate> getCodeUpdateFlux(Mono<CodeUpdates> codeUpdatesMono) {
-        return Flux.from(codeUpdatesMono)
-                .filter(codeUpdates -> codeUpdates.getItems() != null)
-                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
     }
 
     private Map<String, Integer> getTopExtensionStats() {
