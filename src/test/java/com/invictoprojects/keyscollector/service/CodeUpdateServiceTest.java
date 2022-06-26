@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
@@ -31,8 +30,8 @@ class CodeUpdateServiceTest {
 
     @Test
     void streamCodeUpdates() {
-        Mockito.when(codeUpdateGenerator.next())
-                .thenReturn(Mono.just(new CodeUpdates(List.of(
+        Mockito.when(codeUpdateGenerator.getNextPage())
+                .thenReturn(new CodeUpdates(List.of(
                         new CodeUpdate(
                                 "file.extension",
                                 "test/file.extension",
@@ -54,8 +53,8 @@ class CodeUpdateServiceTest {
                                 "FirstRepository",
                                 List.of("@test")
                         )
-                ))))
-                .thenReturn(Mono.just(new CodeUpdates(List.of(
+                )))
+                .thenReturn(new CodeUpdates(List.of(
                         new CodeUpdate(
                                 "file.ext1",
                                 "test/file.ext1",
@@ -77,7 +76,7 @@ class CodeUpdateServiceTest {
                                 "FourthRepository",
                                 List.of("test=TESTKEY")
                         )
-                ))))
+                )))
                 .thenReturn(null);
         Mockito.when(languageService.resolveLanguageByExtension(".extension"))
                 .thenReturn("Language");
@@ -123,7 +122,7 @@ class CodeUpdateServiceTest {
     }
 
     @Test
-    void getCodeUpdates() {
+    void getCodeUpdateFlux() {
         CodeUpdate codeUpdate1 = new CodeUpdate(
                 "file1.extension",
                 "test/file1.extension",
@@ -146,12 +145,12 @@ class CodeUpdateServiceTest {
                 List.of("test=TESTKEY")
         );
 
-        Mockito.when(codeUpdateGenerator.next())
-                .thenReturn(Mono.just(new CodeUpdates(List.of(codeUpdate1, codeUpdate2))))
-                .thenReturn(Mono.just(new CodeUpdates(List.of(codeUpdate3))))
+        Mockito.when(codeUpdateGenerator.getNextPage())
+                .thenReturn(new CodeUpdates(List.of(codeUpdate1, codeUpdate2)))
+                .thenReturn(new CodeUpdates(List.of(codeUpdate3)))
                 .thenReturn(null);
 
-        Flux<CodeUpdate> result = codeUpdateService.getCodeUpdates(codeUpdateGenerator);
+        Flux<CodeUpdate> result = codeUpdateService.getCodeUpdateFlux(codeUpdateGenerator);
 
         StepVerifier.create(result)
                 .expectSubscription()
@@ -162,31 +161,4 @@ class CodeUpdateServiceTest {
                 .verify();
     }
 
-    @Test
-    void getCodeUpdateFlux() {
-        CodeUpdate codeUpdate1 = new CodeUpdate(
-                "file1.extension",
-                "test/file1.extension",
-                "https://api.github.com/repositories/1/contents/test/file1.extension",
-                "TestRepository",
-                List.of("test=TESTKEY")
-        );
-        CodeUpdate codeUpdate2 = new CodeUpdate(
-                "file2.extension",
-                "test/file2.extension",
-                "https://api.github.com/repositories/1/contents/test/file2.extension",
-                "TestRepository",
-                List.of("test: TESTKEY")
-        );
-        Mono<CodeUpdates> codeUpdatesMono = Mono.just(new CodeUpdates(List.of(codeUpdate1, codeUpdate2)));
-
-        Flux<CodeUpdate> result = codeUpdateService.getCodeUpdateFlux(codeUpdatesMono);
-
-        StepVerifier.create(result)
-                .expectSubscription()
-                .expectNext(codeUpdate1)
-                .expectNext(codeUpdate2)
-                .expectComplete()
-                .verify();
-    }
 }
