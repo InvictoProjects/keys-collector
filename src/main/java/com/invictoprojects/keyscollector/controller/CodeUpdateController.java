@@ -27,7 +27,7 @@ public class CodeUpdateController {
         this.propertiesService = propertiesService;
     }
 
-    @GetMapping(value = "search/{service}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "search/{service}", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<Message> searchCode(@PathVariable String service, @RequestHeader("x-github-api-token") String token) {
         String keyWords = propertiesService.getKeyWords(service);
         Pattern pattern = propertiesService.getPattern(service);
