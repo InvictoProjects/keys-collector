@@ -5,15 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 public class CodeUpdateGenerator {
 
-    private static final String baseUrl = "https://api.github.com";
-    private static String searchApiUri = "search/code?sort=indexed&order=desc&per_page=30&q=";
-    private static final String acceptHeader = "application/vnd.github.v3.text-match+json";
+    private static final String BASE_URL = "https://api.github.com";
+
+    private static final String ACCEPT_HEADER = "application/vnd.github.v3.text-match+json";
+
+    private String searchApiUri = "search/code?sort=indexed&order=desc&per_page=30&q=";
 
     private final String authorizationToken;
 
@@ -25,11 +23,10 @@ public class CodeUpdateGenerator {
         this.authorizationToken = token;
         searchApiUri += keyWord;
         client = WebClient.builder()
-                .baseUrl(baseUrl)
+                .baseUrl(BASE_URL)
                 .defaultHeaders(httpHeaders -> {
                     httpHeaders.set("Authorization", authorizationToken);
-                    httpHeaders.set("Accept", acceptHeader);
-                    httpHeaders.set("User-Agent", "Koroliuk");
+                    httpHeaders.set("Accept", ACCEPT_HEADER);
                 })
                 .build();
     }
