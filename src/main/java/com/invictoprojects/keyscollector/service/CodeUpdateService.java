@@ -3,6 +3,7 @@ package com.invictoprojects.keyscollector.service;
 import com.invictoprojects.keyscollector.model.CodeUpdate;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
 import com.invictoprojects.keyscollector.model.Message;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -19,11 +20,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
 @Service
 public class CodeUpdateService {
 
     private final Map<String, Integer> programmingLanguageStats = new ConcurrentHashMap<>();
     private final Set<String> projects = Collections.synchronizedSet(new LinkedHashSet<>());
+    private String keys = Strings.EMPTY;
+    private String keyWords = Strings.EMPTY;
     private final Environment env;
 
     private final LanguageService languageService;
@@ -34,14 +39,26 @@ public class CodeUpdateService {
         this.languageService = languageService;
     }
 
-    public Flux<Message> streamCodeUpdates(String key, CodeUpdateGenerator generator) {
-        String regex = env.getProperty("regexp.AccessKey." + key.toLowerCase());
-        if (regex == null) {
-            throw new IllegalArgumentException("Please provide key that exists in config file!");
-        }
+    public Flux<Message> streamCodeUpdates(String service, String token) {
+        String[] serviceKeys = requireNonNull(env.getProperty("list." + service + ".keys")).split(",");
+
+        Flux.fromArray(serviceKeys)
+                .mapNotNull(x -> env.getProperty("regexp." + service + "." + x))
+                .map(x -> serviceKeys.length > 1 ? "(" + x + ")" : x)
+                .reduce((x1, x2) -> x1 + "|" + x2)
+                .map(x -> serviceKeys.length > 1 ? "(" + x + ")" : x)
+                .subscribe(result -> keys = result);
+        Pattern pattern = Pattern.compile(keys);
+
+        Flux.fromArray(serviceKeys)
+                .mapNotNull(x -> service + x)
+                .reduce((x1, x2) -> x1 + " " + x2)
+                .subscribe(result -> keyWords = result);
+        CodeUpdateGenerator generator = new CodeUpdateGenerator("token "+ token , keyWords);
+
         return getCodeUpdates(generator)
                 .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, Pattern.compile(regex)))
+                .flatMap(codeUpdate -> parseCodeUpdates(codeUpdate, pattern))
                 .doOnNext(tuple -> collectLanguageStats(tuple.getT2()))
                 .map(tuple -> new Message(
                         tuple.getT1(),
