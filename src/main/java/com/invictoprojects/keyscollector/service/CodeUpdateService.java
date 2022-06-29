@@ -12,12 +12,8 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -79,14 +75,5 @@ public class CodeUpdateService {
         Boolean result = !statisticsService.isProjectAlreadySaved(projectName);
         statisticsService.saveProject(projectName);
         return result;
-    }
-
-    private Map<String, Integer> getTopExtensionStats() {
-        return statisticsService.getProgrammingLanguageStats().entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .limit(3)
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1, LinkedHashMap::new));
     }
 }
