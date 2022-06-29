@@ -6,17 +6,14 @@ import com.invictoprojects.keyscollector.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -38,24 +35,26 @@ public class CodeUpdateService {
                 .doOnNext(tuple -> collectLanguageStats(tuple.getT2()))
                 .map(tuple -> new Message(
                         tuple.getT1(),
-                        getTopExtensionStats(),
+                        tuple.getT2(),
                         tuple.getT3(),
+                        statisticsService.getTopLanguageStats(),
                         isNewProject(tuple.getT3())
                 ))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
     Flux<CodeUpdate> getCodeUpdateFlux(CodeUpdateGenerator generator) {
-        return Flux.generate((SynchronousSink<CodeUpdates> synchronousSink) -> {
-                    CodeUpdates codeUpdate = generator.getNextPage();
-                    if (codeUpdate != null) {
-                        synchronousSink.next(codeUpdate);
+        return Flux.generate((SynchronousSink<Mono<CodeUpdates>> synchronousSink) -> {
+                    Mono<CodeUpdates> codeUpdates = generator.getNextPage();
+                    if (codeUpdates != null) {
+                        synchronousSink.next(codeUpdates);
                     } else {
                         synchronousSink.complete();
                     }
                 })
+                .flatMap(Flux::from, 1, 1)
                 .filter(codeUpdates -> codeUpdates.getItems() != null)
-                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()), 1, 1);
+                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
     }
 
     Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
@@ -77,14 +76,5 @@ public class CodeUpdateService {
         Boolean result = !statisticsService.isProjectAlreadySaved(projectName);
         statisticsService.saveProject(projectName);
         return result;
-    }
-
-    private Map<String, Integer> getTopExtensionStats() {
-        return statisticsService.getProgrammingLanguageStats().entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .limit(3)
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1, LinkedHashMap::new));
     }
 }

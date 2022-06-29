@@ -31,7 +31,7 @@ public class CodeUpdateController {
     public Flux<Message> searchCode(@PathVariable String service, @RequestHeader("x-github-api-token") String token) {
         String keyWords = propertiesService.getKeyWords(service);
         Pattern pattern = propertiesService.getPattern(service);
-        CodeUpdateGenerator codeUpdateGenerator = new CodeUpdateGenerator("token " + token , keyWords);
+        CodeUpdateGenerator codeUpdateGenerator = new CodeUpdateGenerator("token " + token, keyWords);
         return codeUpdateService.streamCodeUpdates(codeUpdateGenerator, pattern);
     }
 
