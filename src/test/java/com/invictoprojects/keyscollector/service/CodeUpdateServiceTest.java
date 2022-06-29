@@ -41,21 +41,21 @@ class CodeUpdateServiceTest {
                                 List.of("test1=TESTKEY", "test2=TESTKEY")
                         ),
                         new CodeUpdate(
-                                "file2.nolang",
-                                "test/file2.nolang",
-                                "https://api.github.com/repositories/1/contents/test/file2.nolang",
+                                "file.nolang",
+                                "test/file.nolang",
+                                "https://api.github.com/repositories/1/contents/test/file.nolang",
                                 "FirstRepository",
                                 List.of("test=TESTKEY")
                         ),
                         new CodeUpdate(
                                 "file.extension",
-                                "test/file1.extension",
-                                "https://api.github.com/repositories/1/contents/test/file1.extension",
+                                "test/file.extension",
+                                "https://api.github.com/repositories/1/contents/test/file.extension",
                                 "FirstRepository",
                                 List.of("@test")
                         )
-                )))
-                .thenReturn(new CodeUpdates(List.of(
+                ))))
+                .thenReturn(Mono.just(new CodeUpdates(List.of(
                         new CodeUpdate(
                                 "file.ext1",
                                 "test/file.ext1",
@@ -92,12 +92,12 @@ class CodeUpdateServiceTest {
 
         StepVerifier.create(result)
                 .expectSubscription()
-                .expectNext(new Message("TESTKEY", Map.of("Language", 1), "FirstRepository", true))
-                .expectNext(new Message("TESTKEY", Map.of("Language", 2), "FirstRepository", false))
-                .expectNext(new Message("TESTKEY", Map.of("Language", 2, "Undetermined", 1), "FirstRepository", false))
-                .expectNext(new Message("TESTKEY", Map.of("Language", 2, "Undetermined", 1, "Lang-1", 1), "SecondRepository", true))
-                .expectNext(new Message("TESTKEY", Map.of("Language", 2, "Undetermined", 1, "Lang-1", 1), "ThirdRepository", true))
-                .expectNext(new Message("TESTKEY", Map.of("Language", 2,  "Lang-2", 2, "Undetermined", 1), "FourthRepository", true))
+                .expectNext(new Message("TESTKEY", "file.extension", "FirstRepository", Map.of("Language", 1), true))
+                .expectNext(new Message("TESTKEY", "file.extension", "FirstRepository", Map.of("Language", 2), false))
+                .expectNext(new Message("TESTKEY", "file.nolang", "FirstRepository", Map.of("Language", 2, "Undetermined", 1), false))
+                .expectNext(new Message("TESTKEY", "file.ext1", "SecondRepository", Map.of("Language", 2, "Undetermined", 1, "Lang-1", 1), true))
+                .expectNext(new Message("TESTKEY", "file.ext2", "ThirdRepository", Map.of("Language", 2, "Undetermined", 1, "Lang-1", 1), true))
+                .expectNext(new Message("TESTKEY", "file.ext2", "FourthRepository", Map.of("Language", 2, "Lang-2", 2, "Undetermined", 1), true))
                 .expectComplete()
                 .verify();
     }

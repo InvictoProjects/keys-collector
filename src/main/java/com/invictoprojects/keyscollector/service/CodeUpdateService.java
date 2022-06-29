@@ -35,8 +35,9 @@ public class CodeUpdateService {
                 .doOnNext(tuple -> collectLanguageStats(tuple.getT2()))
                 .map(tuple -> new Message(
                         tuple.getT1(),
-                        getTopExtensionStats(),
+                        tuple.getT2(),
                         tuple.getT3(),
+                        statisticsService.getTopLanguageStats(),
                         isNewProject(tuple.getT3())
                 ))
                 .subscribeOn(Schedulers.boundedElastic());
