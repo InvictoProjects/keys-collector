@@ -1,9 +1,13 @@
 package com.invictoprojects.keyscollector.service;
 
+import com.invictoprojects.keyscollector.exception.RequestLimitException;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 public class CodeUpdateGenerator {
 
@@ -24,33 +28,21 @@ public class CodeUpdateGenerator {
                 .defaultHeaders(httpHeaders -> {
                     httpHeaders.set("Authorization", authorizationToken);
                     httpHeaders.set("Accept", ACCEPT_HEADER);
+                    httpHeaders.set("User-Agent", "keys-collector");
                 })
                 .build();
     }
 
-    public CodeUpdates getNextPage() {
-        return getNextPageMono()
-                .block();
-    }
-
-    public Mono<CodeUpdates> getNextPageMono() {
+    public Mono<CodeUpdates> getNextPage() {
         currentPage++;
         return client.get()
-                .uri(searchApiUri+ "&page=" + currentPage)
-                .exchangeToMono(clientResponse -> {
-                    if (clientResponse.statusCode().equals(HttpStatus.FORBIDDEN)) {
-                        try {
-                            Thread.sleep(60000);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                        currentPage--;
-                        return getNextPageMono();
-                    } else if (clientResponse.statusCode().equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
-                        return Mono.empty();
-                    } else {
-                        return clientResponse.bodyToMono(CodeUpdates.class);
-                    }
-                });
+                .uri(searchApiUri + "&page=" + currentPage)
+                .retrieve()
+                .onStatus(httpStatus -> httpStatus.equals(HttpStatus.FORBIDDEN),
+                        response -> Mono.error(new RequestLimitException("Rate limit is exceeded", response.rawStatusCode())))
+                .onStatus(httpStatus -> httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY), response -> null)
+                .bodyToMono(CodeUpdates.class)
+                .retryWhen(Retry.fixedDelay(3, Duration.ofMinutes(1))
+                        .filter(RequestLimitException.class::isInstance));
     }
 }
