@@ -1,6 +1,7 @@
 package com.invictoprojects.keyscollector.service;
 
 import com.invictoprojects.keyscollector.exception.RequestLimitException;
+import com.invictoprojects.keyscollector.exception.SearchResultLimitException;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -40,7 +41,8 @@ public class CodeUpdateGenerator {
                 .retrieve()
                 .onStatus(httpStatus -> httpStatus.equals(HttpStatus.FORBIDDEN),
                         response -> Mono.error(new RequestLimitException("Rate limit is exceeded", response.rawStatusCode())))
-                .onStatus(httpStatus -> httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY), response -> null)
+                .onStatus(httpStatus -> httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY),
+                        response -> Mono.error(new SearchResultLimitException("Only the first 1000 search results are available")))
                 .bodyToMono(CodeUpdates.class)
                 .retryWhen(Retry.fixedDelay(3, Duration.ofMinutes(1))
                         .filter(RequestLimitException.class::isInstance));

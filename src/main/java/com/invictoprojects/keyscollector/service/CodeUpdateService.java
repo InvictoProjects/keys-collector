@@ -44,14 +44,7 @@ public class CodeUpdateService {
     }
 
     Flux<CodeUpdate> getCodeUpdateFlux(CodeUpdateGenerator generator) {
-        return Flux.generate((SynchronousSink<Mono<CodeUpdates>> synchronousSink) -> {
-                    Mono<CodeUpdates> codeUpdates = generator.getNextPage();
-                    if (codeUpdates != null) {
-                        synchronousSink.next(codeUpdates);
-                    } else {
-                        synchronousSink.complete();
-                    }
-                })
+        return Flux.generate((SynchronousSink<Mono<CodeUpdates>> sink) -> sink.next(generator.getNextPage()))
                 .flatMap(Flux::from, 1, 1)
                 .filter(codeUpdates -> codeUpdates.getItems() != null)
                 .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
