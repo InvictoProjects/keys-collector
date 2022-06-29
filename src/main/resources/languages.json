@@ -97,10 +97,6 @@
       ]
    },
    {
-      "name":"Ant Build System",
-      "type":"data"
-   },
-   {
       "name":"ApacheConf",
       "type":"markup",
       "extensions":[
@@ -142,8 +138,7 @@
       "type":"prose",
       "extensions":[
          ".asciidoc",
-         ".adoc",
-         ".asc"
+         ".adoc"
       ]
    },
    {
@@ -229,7 +224,6 @@
       "name":"BlitzBasic",
       "type":"programming",
       "extensions":[
-         ".bb",
          ".decls"
       ]
    },
@@ -306,12 +300,10 @@
          ".cc",
          ".cp",
          ".cxx",
-         ".h",
          ".h++",
          ".hh",
          ".hpp",
          ".hxx",
-         ".inc",
          ".inl",
          ".ipp",
          ".tcc",
@@ -464,7 +456,6 @@
       "extensions":[
          ".coffee",
          "._coffee",
-         ".cake",
          ".cjsx",
          ".cson",
          ".iced"
@@ -503,15 +494,7 @@
       "name":"Component Pascal",
       "type":"programming",
       "extensions":[
-         ".cp",
          ".cps"
-      ]
-   },
-   {
-      "name":"Cool",
-      "type":"programming",
-      "extensions":[
-         ".cl"
       ]
    },
    {
@@ -616,13 +599,6 @@
       ]
    },
    {
-      "name":"DTrace",
-      "type":"programming",
-      "extensions":[
-         ".d"
-      ]
-   },
-   {
       "name":"Darcs Patch",
       "type":"data",
       "extensions":[
@@ -685,13 +661,6 @@
       ]
    },
    {
-      "name":"ECLiPSe",
-      "type":"programming",
-      "extensions":[
-         ".ecl"
-      ]
-   },
-   {
       "name":"Eagle",
       "type":"markup",
       "extensions":[
@@ -704,13 +673,6 @@
       "type":"data",
       "extensions":[
          ".epj"
-      ]
-   },
-   {
-      "name":"Eiffel",
-      "type":"programming",
-      "extensions":[
-         ".e"
       ]
    },
    {
@@ -779,12 +741,10 @@
       "type":"programming",
       "extensions":[
          ".f90",
-         ".f",
          ".f03",
          ".f08",
          ".f77",
          ".f95",
-         ".for",
          ".fpp"
       ]
    },
@@ -811,13 +771,6 @@
       ]
    },
    {
-      "name":"Filterscript",
-      "type":"programming",
-      "extensions":[
-         ".fs"
-      ]
-   },
-   {
       "name":"Formatted",
       "type":"data",
       "extensions":[
@@ -832,11 +785,9 @@
          ".fth",
          ".4th",
          ".f",
-         ".for",
          ".forth",
          ".fr",
-         ".frt",
-         ".fs"
+         ".frt"
       ]
    },
    {
@@ -844,13 +795,6 @@
       "type":"programming",
       "extensions":[
          ".ftl"
-      ]
-   },
-   {
-      "name":"Frege",
-      "type":"programming",
-      "extensions":[
-         ".fr"
       ]
    },
    {
@@ -873,7 +817,6 @@
       "name":"GAP",
       "type":"programming",
       "extensions":[
-         ".g",
          ".gap",
          ".gd",
          ".gi",
@@ -889,13 +832,6 @@
       ]
    },
    {
-      "name":"GDScript",
-      "type":"programming",
-      "extensions":[
-         ".gd"
-      ]
-   },
-   {
       "name":"GLSL",
       "type":"programming",
       "extensions":[
@@ -903,7 +839,6 @@
          ".fp",
          ".frag",
          ".frg",
-         ".fs",
          ".fsh",
          ".fshader",
          ".geo",
@@ -1017,13 +952,6 @@
       ]
    },
    {
-      "name":"Graph Modeling Language",
-      "type":"data",
-      "extensions":[
-         ".gml"
-      ]
-   },
-   {
       "name":"GraphQL",
       "type":"data",
       "extensions":[
@@ -1059,10 +987,7 @@
          ".7",
          ".8",
          ".9",
-         ".l",
          ".me",
-         ".ms",
-         ".n",
          ".rno",
          ".roff"
       ]
@@ -1097,7 +1022,6 @@
       "type":"programming",
       "extensions":[
          ".hlsl",
-         ".fx",
          ".fxh",
          ".hlsli"
       ]
@@ -1109,7 +1033,6 @@
          ".html",
          ".htm",
          ".html.hl",
-         ".inc",
          ".st",
          ".xht",
          ".xhtml"
@@ -1135,7 +1058,7 @@
       "type":"markup",
       "extensions":[
          ".erb",
-         ".erb.deface"
+         ".deface"
       ]
    },
    {
@@ -1150,14 +1073,6 @@
       "type":"data",
       "extensions":[
          ".http"
-      ]
-   },
-   {
-      "name":"Hack",
-      "type":"programming",
-      "extensions":[
-         ".hh",
-         ".php"
       ]
    },
    {
@@ -1207,13 +1122,6 @@
       ]
    },
    {
-      "name":"HyPhy",
-      "type":"programming",
-      "extensions":[
-         ".bf"
-      ]
-   },
-   {
       "name":"IDL",
       "type":"programming",
       "extensions":[
@@ -1235,7 +1143,6 @@
          ".ini",
          ".cfg",
          ".prefs",
-         ".pro",
          ".properties"
       ]
    },
@@ -1383,10 +1290,7 @@
          ".js",
          "._js",
          ".bones",
-         ".es",
          ".es6",
-         ".frag",
-         ".gs",
          ".jake",
          ".jsb",
          ".jscad",
@@ -1439,8 +1343,6 @@
       "name":"KiCad",
       "type":"programming",
       "extensions":[
-         ".sch",
-         ".brd",
          ".kicad_pcb"
       ]
    },
@@ -1533,7 +1435,6 @@
       "name":"Lex",
       "type":"programming",
       "extensions":[
-         ".l",
          ".lex"
       ]
    },
@@ -1546,26 +1447,11 @@
       ]
    },
    {
-      "name":"Limbo",
-      "type":"programming",
-      "extensions":[
-         ".b",
-         ".m"
-      ]
-   },
-   {
       "name":"Linker Script",
       "type":"data",
       "extensions":[
          ".ld",
          ".lds"
-      ]
-   },
-   {
-      "name":"Linux Kernel Module",
-      "type":"data",
-      "extensions":[
-         ".mod"
       ]
    },
    {
@@ -1629,13 +1515,6 @@
       ]
    },
    {
-      "name":"LoomScript",
-      "type":"programming",
-      "extensions":[
-         ".ls"
-      ]
-   },
-   {
       "name":"Lua",
       "type":"programming",
       "extensions":[
@@ -1663,17 +1542,9 @@
       ]
    },
    {
-      "name":"M4Sugar",
-      "type":"programming",
-      "extensions":[
-         ".m4"
-      ]
-   },
-   {
       "name":"MAXScript",
       "type":"programming",
       "extensions":[
-         ".ms",
          ".mcr"
       ]
    },
@@ -1688,8 +1559,7 @@
       "name":"MUF",
       "type":"programming",
       "extensions":[
-         ".muf",
-         ".m"
+         ".muf"
       ]
    },
    {
@@ -1697,7 +1567,6 @@
       "type":"programming",
       "extensions":[
          ".mak",
-         ".d",
          ".mk",
          ".mkfile"
       ]
@@ -1735,7 +1604,6 @@
       "extensions":[
          ".mathematica",
          ".cdf",
-         ".m",
          ".ma",
          ".mt",
          ".nb",
@@ -1748,13 +1616,8 @@
       "name":"Matlab",
       "type":"programming",
       "extensions":[
-         ".matlab",
-         ".m"
+         ".matlab"
       ]
-   },
-   {
-      "name":"Maven POM",
-      "type":"data"
    },
    {
       "name":"Max",
@@ -1779,7 +1642,6 @@
       "name":"Mercury",
       "type":"programming",
       "extensions":[
-         ".m",
          ".moo"
       ]
    },
@@ -1815,13 +1677,6 @@
       ]
    },
    {
-      "name":"Modula-2",
-      "type":"programming",
-      "extensions":[
-         ".mod"
-      ]
-   },
-   {
       "name":"Module Management System",
       "type":"programming",
       "extensions":[
@@ -1834,13 +1689,6 @@
       "type":"programming",
       "extensions":[
          ".monkey"
-      ]
-   },
-   {
-      "name":"Moocode",
-      "type":"programming",
-      "extensions":[
-         ".moo"
       ]
    },
    {
@@ -1910,20 +1758,10 @@
       ]
    },
    {
-      "name":"NewLisp",
-      "type":"programming",
-      "extensions":[
-         ".nl",
-         ".lisp",
-         ".lsp"
-      ]
-   },
-   {
       "name":"Nginx",
       "type":"markup",
       "extensions":[
-         ".nginxconf",
-         ".vhost"
+         ".nginxconf"
       ]
    },
    {
@@ -1992,14 +1830,6 @@
       ]
    },
    {
-      "name":"Objective-C",
-      "type":"programming",
-      "extensions":[
-         ".m",
-         ".h"
-      ]
-   },
-   {
       "name":"Objective-C++",
       "type":"programming",
       "extensions":[
@@ -2010,7 +1840,6 @@
       "name":"Objective-J",
       "type":"programming",
       "extensions":[
-         ".j",
          ".sj"
       ]
    },
@@ -2039,7 +1868,6 @@
       "name":"OpenCL",
       "type":"programming",
       "extensions":[
-         ".cl",
          ".opencl"
       ]
    },
@@ -2047,8 +1875,7 @@
       "name":"OpenEdge ABL",
       "type":"programming",
       "extensions":[
-         ".p",
-         ".cls"
+         ".p"
       ]
    },
    {
@@ -2092,8 +1919,7 @@
       "name":"PAWN",
       "type":"programming",
       "extensions":[
-         ".pwn",
-         ".inc"
+         ".pwn"
       ]
    },
    {
@@ -2103,8 +1929,6 @@
          ".php",
          ".aw",
          ".ctp",
-         ".fcgi",
-         ".inc",
          ".php3",
          ".php4",
          ".php5",
@@ -2113,31 +1937,10 @@
       ]
    },
    {
-      "name":"PLSQL",
-      "type":"programming",
-      "extensions":[
-         ".pls",
-         ".pck",
-         ".pkb",
-         ".pks",
-         ".plb",
-         ".plsql",
-         ".sql"
-      ]
-   },
-   {
-      "name":"PLpgSQL",
-      "type":"programming",
-      "extensions":[
-         ".sql"
-      ]
-   },
-   {
       "name":"POV-Ray SDL",
       "type":"programming",
       "extensions":[
-         ".pov",
-         ".inc"
+         ".pov"
       ]
    },
    {
@@ -2182,7 +1985,6 @@
          ".pas",
          ".dfm",
          ".dpr",
-         ".inc",
          ".lpr",
          ".pp"
       ]
@@ -2194,7 +1996,6 @@
          ".pl",
          ".al",
          ".cgi",
-         ".fcgi",
          ".perl",
          ".ph",
          ".plx",
@@ -2214,11 +2015,8 @@
          ".p6",
          ".p6l",
          ".p6m",
-         ".pl",
          ".pl6",
-         ".pm",
-         ".pm6",
-         ".t"
+         ".pm6"
       ]
    },
    {
@@ -2226,13 +2024,6 @@
       "type":"data",
       "extensions":[
          ".pkl"
-      ]
-   },
-   {
-      "name":"PicoLisp",
-      "type":"programming",
-      "extensions":[
-         ".l"
       ]
    },
    {
@@ -2248,13 +2039,6 @@
       "extensions":[
          ".pike",
          ".pmod"
-      ]
-   },
-   {
-      "name":"Pod",
-      "type":"prose",
-      "extensions":[
-         ".pod"
       ]
    },
    {
@@ -2299,8 +2083,6 @@
       "name":"Prolog",
       "type":"programming",
       "extensions":[
-         ".pl",
-         ".pro",
          ".prolog",
          ".yap"
       ]
@@ -2323,15 +2105,7 @@
       "name":"Public Key",
       "type":"data",
       "extensions":[
-         ".asc",
          ".pub"
-      ]
-   },
-   {
-      "name":"Puppet",
-      "type":"programming",
-      "extensions":[
-         ".pp"
       ]
    },
    {
@@ -2362,15 +2136,12 @@
       "extensions":[
          ".py",
          ".bzl",
-         ".cgi",
-         ".fcgi",
          ".gyp",
          ".lmi",
          ".pyde",
          ".pyp",
          ".pyt",
          ".pyw",
-         ".rpy",
          ".tac",
          ".wsgi",
          ".xpy"
@@ -2395,7 +2166,6 @@
       "name":"QMake",
       "type":"programming",
       "extensions":[
-         ".pro",
          ".pri"
       ]
    },
@@ -2477,7 +2247,6 @@
       "type":"programming",
       "extensions":[
          ".reb",
-         ".r",
          ".r2",
          ".r3",
          ".rebol"
@@ -2506,14 +2275,6 @@
       ]
    },
    {
-      "name":"RenderScript",
-      "type":"programming",
-      "extensions":[
-         ".rs",
-         ".rsh"
-      ]
-   },
-   {
       "name":"RobotFramework",
       "type":"programming",
       "extensions":[
@@ -2533,13 +2294,11 @@
       "extensions":[
          ".rb",
          ".builder",
-         ".fcgi",
          ".gemspec",
          ".god",
          ".irbrc",
          ".jbuilder",
          ".mspec",
-         ".pluginspec",
          ".podspec",
          ".rabl",
          ".rake",
@@ -2605,19 +2364,10 @@
          ".sql",
          ".cql",
          ".ddl",
-         ".inc",
          ".prc",
          ".tab",
          ".udf",
          ".viw"
-      ]
-   },
-   {
-      "name":"SQLPL",
-      "type":"programming",
-      "extensions":[
-         ".sql",
-         ".db2"
       ]
    },
    {
@@ -2678,7 +2428,6 @@
       "extensions":[
          ".scm",
          ".sld",
-         ".sls",
          ".sps",
          ".ss"
       ]
@@ -2688,8 +2437,7 @@
       "type":"programming",
       "extensions":[
          ".sci",
-         ".sce",
-         ".tst"
+         ".sce"
       ]
    },
    {
@@ -2706,9 +2454,7 @@
          ".sh",
          ".bash",
          ".bats",
-         ".cgi",
          ".command",
-         ".fcgi",
          ".ksh",
          ".sh.in",
          ".tmux",
@@ -2752,14 +2498,6 @@
       ]
    },
    {
-      "name":"Smalltalk",
-      "type":"programming",
-      "extensions":[
-         ".st",
-         ".cs"
-      ]
-   },
-   {
       "name":"Smarty",
       "type":"programming",
       "extensions":[
@@ -2771,7 +2509,6 @@
       "type":"programming",
       "extensions":[
          ".sp",
-         ".inc",
          ".sma"
       ]
    },
@@ -2793,7 +2530,6 @@
       "name":"Standard ML",
       "type":"programming",
       "extensions":[
-         ".ML",
          ".fun",
          ".sig",
          ".sml"
@@ -2823,7 +2559,6 @@
       "name":"SuperCollider",
       "type":"programming",
       "extensions":[
-         ".sc",
          ".scd"
       ]
    },
@@ -2883,7 +2618,6 @@
          ".bbx",
          ".bib",
          ".cbx",
-         ".cls",
          ".dtx",
          ".ins",
          ".lbx",
@@ -2903,20 +2637,10 @@
       ]
    },
    {
-      "name":"Terra",
-      "type":"programming",
-      "extensions":[
-         ".t"
-      ]
-   },
-   {
       "name":"Text",
       "type":"prose",
       "extensions":[
          ".txt",
-         ".fr",
-         ".nb",
-         ".ncl",
          ".no"
       ]
    },
@@ -2938,7 +2662,6 @@
       "name":"Turing",
       "type":"programming",
       "extensions":[
-         ".t",
          ".tu"
       ]
    },
@@ -3038,7 +2761,6 @@
       "name":"Verilog",
       "type":"programming",
       "extensions":[
-         ".v",
          ".veo"
       ]
    },
@@ -3055,7 +2777,6 @@
       "extensions":[
          ".vb",
          ".bas",
-         ".cls",
          ".frm",
          ".frx",
          ".vba",
@@ -3127,7 +2848,6 @@
          ".fsproj",
          ".fxml",
          ".glade",
-         ".gml",
          ".grxml",
          ".iml",
          ".ivy",
@@ -3136,8 +2856,6 @@
          ".kml",
          ".launch",
          ".mdpolicy",
-         ".mm",
-         ".mod",
          ".mxml",
          ".nproj",
          ".nuspec",
@@ -3158,13 +2876,6 @@
          ".sublime-snippet",
          ".targets",
          ".tmCommand",
-         ".tml",
-         ".tmLanguage",
-         ".tmPreferences",
-         ".tmSnippet",
-         ".tmTheme",
-         ".ts",
-         ".tsx",
          ".ui",
          ".urdf",
          ".ux",
@@ -3184,7 +2895,6 @@
          ".xlf",
          ".xliff",
          ".xmi",
-         ".xml.dist",
          ".xproj",
          ".xsd",
          ".xul",
@@ -3195,8 +2905,7 @@
       "name":"XPages",
       "type":"programming",
       "extensions":[
-         ".xsp-config",
-         ".xsp.metadata"
+         ".xsp-config"
       ]
    },
    {
@@ -3301,8 +3010,7 @@
       "name":"desktop",
       "type":"data",
       "extensions":[
-         ".desktop",
-         ".desktop.in"
+         ".desktop"
       ]
    },
    {
@@ -3353,9 +3061,7 @@
       "type":"prose",
       "extensions":[
          ".rst",
-         ".rest",
-         ".rest.txt",
-         ".rst.txt"
+         ".rest"
       ]
    },
    {
@@ -3370,7 +3076,6 @@
       "type":"programming",
       "extensions":[
          ".prg",
-         ".ch",
          ".prw"
       ]
    }
