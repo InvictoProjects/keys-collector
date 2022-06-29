@@ -6,6 +6,7 @@ import com.invictoprojects.keyscollector.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
@@ -46,16 +47,17 @@ public class CodeUpdateService {
     }
 
     Flux<CodeUpdate> getCodeUpdateFlux(CodeUpdateGenerator generator) {
-        return Flux.generate((SynchronousSink<CodeUpdates> synchronousSink) -> {
-                    CodeUpdates codeUpdate = generator.getNextPage();
-                    if (codeUpdate != null) {
-                        synchronousSink.next(codeUpdate);
+        return Flux.generate((SynchronousSink<Mono<CodeUpdates>> synchronousSink) -> {
+                    Mono<CodeUpdates> codeUpdates = generator.getNextPage();
+                    if (codeUpdates != null) {
+                        synchronousSink.next(codeUpdates);
                     } else {
                         synchronousSink.complete();
                     }
                 })
+                .flatMap(Flux::from, 1, 1)
                 .filter(codeUpdates -> codeUpdates.getItems() != null)
-                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()), 1, 1);
+                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
     }
 
     Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {

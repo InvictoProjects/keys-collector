@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
@@ -31,7 +32,7 @@ class CodeUpdateServiceTest {
     @Test
     void streamCodeUpdates() {
         Mockito.when(codeUpdateGenerator.getNextPage())
-                .thenReturn(new CodeUpdates(List.of(
+                .thenReturn(Mono.just(new CodeUpdates(List.of(
                         new CodeUpdate(
                                 "file.extension",
                                 "test/file.extension",
@@ -76,7 +77,7 @@ class CodeUpdateServiceTest {
                                 "FourthRepository",
                                 List.of("test=TESTKEY")
                         )
-                )))
+                ))))
                 .thenReturn(null);
         Mockito.when(languageService.resolveLanguageByExtension(".extension"))
                 .thenReturn("Language");
@@ -146,8 +147,8 @@ class CodeUpdateServiceTest {
         );
 
         Mockito.when(codeUpdateGenerator.getNextPage())
-                .thenReturn(new CodeUpdates(List.of(codeUpdate1, codeUpdate2)))
-                .thenReturn(new CodeUpdates(List.of(codeUpdate3)))
+                .thenReturn(Mono.just(new CodeUpdates(List.of(codeUpdate1, codeUpdate2))))
+                .thenReturn(Mono.just(new CodeUpdates(List.of(codeUpdate3))))
                 .thenReturn(null);
 
         Flux<CodeUpdate> result = codeUpdateService.getCodeUpdateFlux(codeUpdateGenerator);
