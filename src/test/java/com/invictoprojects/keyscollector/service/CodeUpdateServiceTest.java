@@ -1,5 +1,6 @@
 package com.invictoprojects.keyscollector.service;
 
+import com.invictoprojects.keyscollector.exception.SearchResultLimitException;
 import com.invictoprojects.keyscollector.model.CodeUpdate;
 import com.invictoprojects.keyscollector.model.CodeUpdates;
 import com.invictoprojects.keyscollector.model.Message;
@@ -78,7 +79,7 @@ class CodeUpdateServiceTest {
                                 List.of("test=TESTKEY")
                         )
                 ))))
-                .thenReturn(null);
+                .thenReturn(Mono.error(new SearchResultLimitException("Exception")));
         Mockito.when(languageService.resolveLanguageByExtension(".extension"))
                 .thenReturn("Language");
         Mockito.when(languageService.resolveLanguageByExtension(".ext1"))
@@ -98,7 +99,7 @@ class CodeUpdateServiceTest {
                 .expectNext(new Message("TESTKEY", "file.ext1", "SecondRepository", Map.of("Language", 2, "Undetermined", 1, "Lang-1", 1), true))
                 .expectNext(new Message("TESTKEY", "file.ext2", "ThirdRepository", Map.of("Language", 2, "Undetermined", 1, "Lang-1", 1), true))
                 .expectNext(new Message("TESTKEY", "file.ext2", "FourthRepository", Map.of("Language", 2, "Lang-2", 2, "Undetermined", 1), true))
-                .expectComplete()
+                .expectError(SearchResultLimitException.class)
                 .verify();
     }
 
@@ -149,7 +150,7 @@ class CodeUpdateServiceTest {
         Mockito.when(codeUpdateGenerator.getNextPage())
                 .thenReturn(Mono.just(new CodeUpdates(List.of(codeUpdate1, codeUpdate2))))
                 .thenReturn(Mono.just(new CodeUpdates(List.of(codeUpdate3))))
-                .thenReturn(null);
+                .thenReturn(Mono.error(new SearchResultLimitException("Exception")));
 
         Flux<CodeUpdate> result = codeUpdateService.getCodeUpdateFlux(codeUpdateGenerator);
 
@@ -158,7 +159,7 @@ class CodeUpdateServiceTest {
                 .expectNext(codeUpdate1)
                 .expectNext(codeUpdate2)
                 .expectNext(codeUpdate3)
-                .expectComplete()
+                .expectError(SearchResultLimitException.class)
                 .verify();
     }
 
