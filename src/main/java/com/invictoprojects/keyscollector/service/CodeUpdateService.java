@@ -47,11 +47,11 @@ public class CodeUpdateService {
         return Flux.generate((SynchronousSink<Mono<CodeUpdates>> sink) -> sink.next(generator.getNextPage()))
                 .flatMap(Flux::from, 1, 1)
                 .filter(codeUpdates -> codeUpdates.getItems() != null)
-                .flatMap(codeUpdates -> Flux.fromStream(codeUpdates.getItems().stream()));
+                .flatMap(codeUpdates -> Flux.fromIterable(codeUpdates.getItems()));
     }
 
     Flux<Tuple3<String, String, String>> parseCodeUpdates(CodeUpdate codeUpdate, Pattern pattern) {
-        return Flux.fromStream(codeUpdate.getTextMatches().stream())
+        return Flux.fromIterable(codeUpdate.getTextMatches())
                 .map(pattern::matcher)
                 .filter(Matcher::find)
                 .map(Matcher::group)
